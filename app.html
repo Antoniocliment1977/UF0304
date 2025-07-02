@@ -1,0 +1,268 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Test de Conocimientos de Albañilería</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+        <style>
+            body {
+                font-family: 'Inter', sans-serif;
+            }
+            .quiz-container {
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .card {
+                transition: all 0.3s ease;
+            }
+            .btn-answer.correct {
+                background-color: #22c55e; /* green-500 */
+                color: white;
+                border-color: #16a34a; /* green-600 */
+            }
+            .btn-answer.incorrect {
+                background-color: #ef4444; /* red-500 */
+                color: white;
+                border-color: #dc2626; /* red-600 */
+            }
+            .btn-answer.selected {
+                transform: scale(1.02);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }
+        </style>
+    </head>
+    <body class="bg-gray-100 text-gray-800">
+
+        <div class="quiz-container p-4">
+            <div id="quiz-card" class="card w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">
+                
+                <!-- Start Screen -->
+                <div id="start-screen" class="p-8 md:p-12 text-center">
+                    <h1 class="text-3xl md:text-4xl font-bold mb-4">Test de Albañilería</h1>
+                    <p class="text-gray-600 mb-8">Pon a prueba tus conocimientos sobre construcción. Pulsa el botón para empezar.</p>
+                    <button onclick="startQuiz()" class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors text-lg">
+                        Comenzar
+                    </button>
+                </div>
+
+                <!-- Quiz Screen -->
+                <div id="quiz-screen" class="hidden">
+                    <div class="p-8">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold">Pregunta <span id="question-number"></span> de <span id="total-questions"></span></h2>
+                            <div id="score-display" class="text-lg font-semibold">Puntos: <span id="score">0</span></div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6">
+                            <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <p id="question-text" class="text-xl md:text-2xl font-semibold mb-8 min-h-[100px]"></p>
+                        <div id="answer-buttons" class="grid grid-cols-1 gap-4">
+                            <!-- Answer buttons will be inserted here by JS -->
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-8 py-4">
+                        <button id="next-button" onclick="nextQuestion()" class="w-full bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg cursor-not-allowed" disabled>
+                            Siguiente
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Screen -->
+                <div id="results-screen" class="hidden p-8 md:p-12 text-center">
+                    <h1 class="text-3xl md:text-4xl font-bold mb-4">¡Test Completado!</h1>
+                    <div class="my-8">
+                        <p class="text-xl text-gray-700">Tu puntuación final es:</p>
+                        <p id="final-score" class="text-6xl font-bold my-4"></p>
+                        <p id="score-percentage" class="text-2xl font-semibold text-blue-600"></p>
+                    </div>
+                    <button onclick="restartQuiz()" class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors text-lg">
+                        Intentar de nuevo
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <script>
+            // --- DATA: All quiz questions ---
+            const questions = [
+                { question: "¿Qué se recomienda hacer para minimizar el riesgo de eflorescencias?", answers: [ { text: "Realizar el embarrado interior inmediatamente después de terminar el muro.", correct: false }, { text: "Usar cementos blancos y realizar pruebas previas con los materiales.", correct: true }, { text: "Utilizar siempre arena de mar sin lavar.", correct: false }, { text: "Mojar el muro en exceso después de su ejecución.", correct: false } ] },
+                { question: "¿Qué es el \"tendel\" en una fábrica de albañilería?", answers: [ { text: "El tratamiento superficial que se le da a la junta.", correct: false }, { text: "La junta vertical entre dos ladrillos de la misma hilada.", correct: false }, { text: "La junta horizontal de mortero entre dos hiladas sucesivas.", correct: true }, { text: "Una herramienta para comprobar la planeidad del muro.", correct: false } ] },
+                { question: "Para garantizar la seguridad, la inclinación de una escalera de mano debe ser tal que la distancia de la base a la pared sea aproximadamente:", answers: [ { text: "Un metro, independientemente de la altura.", correct: false }, { text: "Un cuarto de la longitud de la escalera.", correct: true }, { text: "Un tercio de la longitud de la escalera.", correct: false }, { text: "La mitad de la longitud de la escalera.", correct: false } ] },
+                { question: "En el replanteo de una fábrica de bloques, las dimensiones que incluyen la pieza y el espesor de la junta se denominan:", answers: [ { text: "Dimensiones de fabricación.", correct: false }, { text: "Dimensiones efectivas.", correct: false }, { text: "Dimensiones de replanteo.", correct: false }, { text: "Dimensiones nominales.", correct: true } ] },
+                { question: "Un mortero compuesto por cemento, cal, arena y agua se denomina:", answers: [ { text: "Mortero de obra.", correct: false }, { text: "Mortero bastardo.", correct: true }, { text: "Mortero de yeso.", correct: false }, { text: "Mortero hidrófugo.", correct: false } ] },
+                { question: "¿Cuál es la función del \"goterón\" en piezas como albardillas o alféizares?", answers: [ { text: "Romper la continuidad de la lámina de agua, evitando que retorne hacia el paramento.", correct: true }, { text: "Servir de anclaje mecánico a la fábrica.", correct: false }, { text: "Es un elemento puramente decorativo sin función práctica.", correct: false }, { text: "Aumentar la resistencia de la pieza.", correct: false } ] },
+                { question: "La acción de rigidizar o estabilizar una estructura mediante elementos que impiden su desplazamiento se llama:", answers: [ { text: "Rejuntado.", correct: false }, { text: "Nivelación.", correct: false }, { text: "Aplomado.", correct: false }, { text: "Arriostramiento.", correct: true } ] },
+                { question: "El uso de armaduras de tendel prefabricadas en un muro de bloques lo convierte en:", answers: [ { text: "Un muro de relleno.", correct: false }, { text: "Un muro capuchino.", correct: false }, { text: "Un muro acostillado.", correct: false }, { text: "Un muro de fábrica armada por tendeles.", correct: true } ] },
+                { question: "La herramienta auxiliar que consiste en un peso suspendido de una cuerda para verificar la verticalidad de un paramento es:", answers: [ { text: "El nivel de burbuja.", correct: false }, { text: "La escuadra.", correct: false }, { text: "La plomada.", correct: true }, { text: "La mira.", correct: false } ] },
+                { question: "¿Cuál de los siguientes no es un documento indispensable en un proyecto de ejecución?", answers: [ { text: "Planos de construcción.", correct: false }, { text: "Mediciones y presupuesto.", correct: false }, { text: "Acta de replanteo inicial.", correct: true }, { text: "Memoria descriptiva y justificativa.", correct: false } ] },
+                { question: "Para la correcta ejecución de una fábrica de bloques, la cara del bloque con mayor superficie de hormigón (debido a la conicidad de los alvéolos) debe colocarse:", answers: [ { text: "De forma aleatoria para mejorar la trabazón.", correct: false }, { text: "Hacia abajo, en contacto con el tendel inferior.", correct: false }, { text: "Hacia arriba, para ofrecer un mejor apoyo al mortero.", correct: true }, { text: "Hacia el interior del muro.", correct: false } ] },
+                { question: "¿Qué son las \"adarajas\" y \"endejas\"?", answers: [ { text: "Tipos de armaduras de tendel.", correct: false }, { text: "Los salientes y entrantes que se dejan en un muro para trabarlo con otro que se construirá después.", correct: true }, { text: "Herramientas para el rejuntado de juntas.", correct: false }, { text: "Defectos superficiales en los ladrillos.", correct: false } ] },
+                { question: "¿Cuál de estos tipos de juntas NO se considera aceptable para fábricas a cara vista por favorecer la entrada de agua?", answers: [ { text: "Enrasada.", correct: false }, { text: "Rehundida.", correct: false }, { text: "Matada superior.", correct: false }, { text: "Matada inferior.", correct: true } ] },
+                { question: "¿Cómo se denomina el aparejo en el que los ladrillos se colocan mostrando su cara más larga (soga) al paramento?", answers: [ { text: "Aparejo a tizón.", correct: false }, { text: "Aparejo a soga.", correct: true }, { text: "Aparejo flamenco.", correct: false }, { text: "Aparejo a panderete.", correct: false } ] },
+                { question: "En la interpretación de planos, ¿qué indica el símbolo de la flecha con la letra \"N\"?", answers: [ { text: "El acceso principal al edificio.", correct: false }, { text: "La orientación geográfica hacia el norte.", correct: true }, { text: "La pendiente de evacuación de aguas.", correct: false }, { text: "La dirección del viento predominante.", correct: false } ] },
+                { question: "La capacidad de un mortero para mantener su trabajabilidad cuando está en contacto con piezas absorbentes se denomina:", answers: [ { text: "Adherencia.", correct: false }, { text: "Segregación.", correct: false }, { text: "Plasticidad.", correct: false }, { text: "Retención de agua.", correct: true } ] },
+                { question: "Los andamios de borriquetas deben tener plataformas con una anchura mínima de:", answers: [ { text: "90 cm.", correct: false }, { text: "60 cm.", correct: true }, { text: "45 cm.", correct: false }, { text: "30 cm.", correct: false } ] },
+                { question: "Un ladrillo \"perforado\" tiene un volumen total de huecos:", answers: [ { text: "Inferior al 25%.", correct: false }, { text: "Superior al 45% e inferior al 70%.", correct: false }, { text: "Superior al 70%.", correct: false }, { text: "Superior al 25% pero no mayor del 45%.", correct: true } ] },
+                { question: "¿Qué nombre recibe la representación gráfica de las superficies verticales de una edificación?", answers: [ { text: "Plano de planta.", correct: false }, { text: "Plano de alzado.", correct: true }, { text: "Plano de sección.", correct: false }, { text: "Croquis.", correct: false } ] },
+                { question: "La patología conocida como \"caliches\" o desconchados es provocada por:", answers: [ { text: "La cristalización de sales en la superficie.", correct: false }, { text: "La erosión del mortero de las juntas por la lluvia.", correct: false }, { text: "La expansión de pequeños granos de óxido cálcico al hidratarse.", correct: true }, { text: "El uso de arenas con un alto contenido en arcilla.", correct: false } ] },
+                { question: "La relación entre la huella (H) y la contrahuella (C) de una escalera, según el CTE, debe cumplir la fórmula:", answers: [ { text: "C + H ≤ 54 cm.", correct: false }, { text: "54 cm ≤ 2C + H ≤ 70 cm.", correct: true }, { text: "H + C = 60 cm.", correct: false }, { text: "2H + C = 70 cm.", correct: false } ] },
+                { question: "La pieza central y superior que cierra un arco adovelado se denomina:", answers: [ { text: "Clave.", correct: true }, { text: "Imposta.", correct: false }, { text: "Jamba.", correct: false }, { text: "Dovela.", correct: false } ] },
+                { question: "La principal recomendación para evitar problemas de permeabilidad en fábricas de ladrillos con alta succión es:", answers: [ { text: "Humedecer los ladrillos antes de su colocación.", correct: true }, { text: "Colocar los ladrillos completamente secos.", correct: false }, { text: "Aumentar el espesor de la junta de tendel a 2 cm.", correct: false }, { text: "Utilizar mortero con un extra de agua.", correct: false } ] },
+                { question: "En el manejo de sierras circulares, qué elemento de seguridad es fundamental y nunca debe inutilizarse?", answers: [ { text: "Las gafas de seguridad y el resguardo del disco.", correct: true }, { text: "La guía lateral para cortes rectos.", correct: false }, { text: "El cable de alimentación con toma de tierra.", correct: false }, { text: "El disco de corte de diamante.", correct: false } ] },
+                { question: "En un muro capuchino, las piezas metálicas que unen las dos hojas del muro se llaman:", answers: [ { text: "Adarajas.", correct: false }, { text: "Grapas o llaves.", correct: true }, { text: "Zunchos.", correct: false }, { text: "Tendeles.", correct: false } ] },
+                { question: "¿Qué es un \"muro careado\"?", answers: [ { text: "Un muro de revestimiento que no contribuye a la resistencia.", correct: false }, { text: "Un muro formado por una sola hoja de bloques.", correct: false }, { text: "Un muro con la cámara de aire rellena de hormigón.", correct: false }, { text: "Un muro formado por dos tipos de piezas (cara vista y trasdós) eficazmente trabadas entre sí.", correct: true } ] },
+                { question: "¿Cuál es la finalidad de añadir \"plastificantes\" a un mortero?", answers: [ { text: "Disminuir la absorción capilar del agua.", correct: false }, { text: "Acelerar el tiempo de fraguado.", correct: false }, { text: "Aumentar la densidad del mortero.", correct: false }, { text: "Reducir la relación agua/cemento, proporcionando un hormigón más compacto.", correct: true } ] },
+                { question: "¿Para qué se utilizan las \"piezas de emparchado\" en una fábrica de ladrillo visto?", answers: [ { text: "Para revestir elementos estructurales como cantos de forjado o pilares, manteniendo la apariencia del ladrillo.", correct: true }, { text: "Para iniciar las esquinas del muro.", correct: false }, { text: "Para crear motivos decorativos en el paño del muro.", correct: false }, { text: "Para la construcción de arcos y dinteles.", correct: false } ] },
+                { question: "La temperatura ambiente ideal para la puesta en obra de morteros, según el manual, debe estar entre:", answers: [ { text: "15 ºC y 40 ºC.", correct: false }, { text: "5 ºC y 30 ºC.", correct: true }, { text: "0 ºC y 15 ºC.", correct: false }, { text: "No tiene importancia la temperatura.", correct: false } ] },
+                { question: "Las piezas especiales de remate que se colocan en la parte superior de las pilastras se llaman:", answers: [ { text: "Capiteles.", correct: true }, { text: "Zócalos.", correct: false }, { text: "Gárgolas.", correct: false }, { text: "Balaustres.", correct: false } ] },
+                { question: "El proceso de repasar y dar forma a las juntas de mortero con una herramienta específica (llaguero) antes de que frague se denomina:", answers: [ { text: "Enfoscado.", correct: false }, { text: "Retundido.", correct: false }, { text: "Rejuntado.", correct: false }, { text: "Llagueado.", correct: true } ] },
+                { question: "¿Cuál es el objetivo de interrumpir la continuidad del mortero en el tendel de un muro de bloque (tendel hueco)?", answers: [ { text: "Mejorar el comportamiento térmico rompiendo el puente térmico.", correct: true }, { text: "Ahorrar material y reducir el peso del muro.", correct: false }, { text: "Acelerar el proceso de construcción.", correct: false }, { text: "Facilitar el paso de instalaciones eléctricas.", correct: false } ] },
+                { question: "¿Qué es un ladrillo \"aplantillado\"?", answers: [ { text: "Un ladrillo de gran formato, con una longitud superior a 300 mm.", correct: false }, { text: "Un ladrillo con un perfil curvo, diseñado para conformar molduras o elementos arquitectónicos curvos.", correct: true }, { text: "Un ladrillo con un tratamiento hidrófugo para repeler el agua.", correct: false }, { text: "Un ladrillo que se obtiene por extrusión y tiene cazoletas en sus tablas.", correct: false } ] },
+                { question: "¿Qué se debe hacer si se encuentra una persona electrocutada?", answers: [ { text: "Sujetarla directamente para apartarla de la fuente de corriente.", correct: false }, { text: "Cortar la tensión y, si no es posible, apartarla usando un elemento no conductor (madera, plástico).", correct: true }, { text: "Esperar a que lleguen los servicios de emergencia sin tocar nada.", correct: false }, { text: "Echarle agua para reanimarla.", correct: false } ] },
+                { question: "La normativa española define un \"ladrillo klinker\" como aquel gresificado que tiene una resistencia a compresión superior a:", answers: [ { text: "450 daN/cm².", correct: true }, { text: "250 daN/cm².", correct: false }, { text: "150 daN/cm².", correct: false }, { text: "350 daN/cm².", correct: false } ] },
+                { question: "La distancia máxima recomendada entre miras o reglas para evitar que la cuerda de atirantar se combe es de:", answers: [ { text: "4 a 8 metros.", correct: true }, { text: "1 a 2 metros.", correct: false }, { text: "10 a 12 metros.", correct: false }, { text: "2 a 3 metros.", correct: false } ] },
+                { question: "Para la protección contra el calor y el secado rápido por el viento, se debe:", answers: [ { text: "Acelerar la ejecución en las horas de máximo sol.", correct: false }, { text: "Mantener húmeda la fábrica recién ejecutada mediante riegos.", correct: true }, { text: "Evitar regar la fábrica para no añadir más agua.", correct: false }, { text: "Cubrir la fábrica con plásticos negros para aumentar la temperatura.", correct: false } ] },
+                { question: "En un replanteo en seco, la pequeña diferencia de medida que pueda surgir al final de una hilada se suele ajustar:", answers: [ { text: "Repartiendo la diferencia entre el espesor de las llagas.", correct: true }, { text: "Cortando el último ladrillo por la mitad.", correct: false }, { text: "Dejando un hueco y rellenándolo con mortero.", correct: false }, { text: "Iniciando la siguiente hilada con una pieza especial.", correct: false } ] },
+                { question: "¿Cuál es la función principal de una \"albardilla\"?", answers: [ { text: "Decorar la línea de fachada entre dos plantas.", correct: false }, { text: "Coronar un muro o pretil para protegerlo de la lluvia.", correct: true }, { text: "Soportar la carga de un hueco de ventana.", correct: false }, { text: "Servir de base para el arranque de un arco.", correct: false } ] },
+                { question: "En la ejecución de fábricas de ladrillo aplantillado, es un inconveniente de usar ladrillos ordinarios:", answers: [ { text: "La necesidad de usar menos mortero.", correct: false }, { text: "Un acabado estético más regular y uniforme.", correct: false }, { text: "Un excesivo grueso del tendel en el trasdós del arco.", correct: true }, { text: "Una mayor facilidad para lograr la curvatura.", correct: false } ] },
+                { question: "Un \"muro de revestimiento\" es aquel que:", answers: [ { text: "Soporta las cargas principales de la edificación.", correct: false }, { text: "Reviste exteriormente a otro muro portante sin trabarse con él y no contribuye a su resistencia.", correct: true }, { text: "Está formado por dos hojas paralelas con una cámara de aire.", correct: false }, { text: "Utiliza piezas de bloque de hormigón macizo.", correct: false } ] },
+                { question: "La operación de retirar el mortero de una junta ya endurecida hasta una profundidad de unos 20 mm para rellenarla con una mezcla nueva y más resistente se llama:", answers: [ { text: "Rejuntado.", correct: false }, { text: "Escafilado.", correct: false }, { text: "Llagueado.", correct: false }, { text: "Retundido.", correct: true } ] },
+                { question: "Los elementos singulares que se utilizan para rematar la parte inferior de un hueco de ventana, facilitando la evacuación del agua, son los:", answers: [ { text: "Impostas.", correct: false }, { text: "Alféizares.", correct: true }, { text: "Dinteles.", correct: false }, { text: "Cargaderos.", correct: false } ] },
+                { question: "¿Qué es una \"cimbra\"?", answers: [ { text: "Un tipo de mortero de secado rápido.", correct: false }, { text: "Una pieza cerámica especial para remates de esquina.", correct: false }, { text: "El ladrillo central que cierra un arco.", correct: false }, { text: "Una estructura auxiliar y provisional que sirve para sostener un arco o bóveda durante su construcción.", correct: true } ] },
+                { question: "El deterioro de un ladrillo por la expansión del agua al congelarse se conoce como:", answers: [ { text: "Caliche.", correct: false }, { text: "Heladicidad.", correct: true }, { text: "Eflorescencia.", correct: false }, { text: "Carbonatación.", correct: false } ] },
+                { question: "Para evitar el ensuciamiento de la fachada, se recomienda que el llagueado se realice:", answers: [ { text: "Siguiendo siempre el mismo criterio de endurecimiento del mortero en toda la obra.", correct: true }, { text: "Cuando el mortero esté completamente seco, al día siguiente.", correct: false }, { text: "Inmediatamente después de colocar cada ladrillo.", correct: false }, { text: "Mezclando mortero de diferentes palés para conseguir uniformidad.", correct: false } ] },
+                { question: "Según el manual, la limpieza de restos de mortero en una fábrica vista NO debe hacerse con:", answers: [ { text: "Cepillos de cerdas duras.", correct: false }, { text: "Chorro de agua a presión, previa prueba.", correct: false }, { text: "Productos limpiadores específicos.", correct: false }, { text: "Estropajos o esponjas húmedas.", correct: true } ] },
+                { question: "Las piezas de bloque de hormigón destinadas a servir de encofrado permanente para un dintel o un zuncho se denominan:", answers: [ { text: "Piezas de esquina o en L.", correct: false }, { text: "Piezas de comienzo y terminación.", correct: false }, { text: "Plaquetas de revestimiento.", correct: false }, { text: "Piezas de zuncho o dintel.", correct: true } ] },
+                { question: "En las juntas de dilatación, para permitir el movimiento horizontal, se suele recubrir uno de los extremos de la llave con:", answers: [ { text: "Resina epoxi.", correct: false }, { text: "Una capa extra de mortero.", correct: false }, { text: "Pintura antioxidante.", correct: false }, { text: "Una funda de plástico.", correct: true } ] },
+                { question: "En la designación de bloques de hormigón por su acabado, la letra \"E\" indica que el bloque es:", answers: [ { text: "Adecuado para revestir.", correct: true }, { text: "Estructural.", correct: false }, { text: "Estanco al agua.", correct: false }, { text: "Especial para esquinas.", correct: false } ] }
+            ];
+
+            // --- DOM Elements ---
+            const startScreen = document.getElementById('start-screen');
+            const quizScreen = document.getElementById('quiz-screen');
+            const resultsScreen = document.getElementById('results-screen');
+            
+            const questionNumberEl = document.getElementById('question-number');
+            const totalQuestionsEl = document.getElementById('total-questions');
+            const scoreEl = document.getElementById('score');
+            const progressBar = document.getElementById('progress-bar');
+            const questionTextEl = document.getElementById('question-text');
+            const answerButtonsEl = document.getElementById('answer-buttons');
+            const nextButton = document.getElementById('next-button');
+            
+            const finalScoreEl = document.getElementById('final-score');
+            const scorePercentageEl = document.getElementById('score-percentage');
+
+            // --- State Variables ---
+            let shuffledQuestions, currentQuestionIndex, score;
+
+            // --- Functions ---
+            function startQuiz() {
+                startScreen.classList.add('hidden');
+                resultsScreen.classList.add('hidden');
+                quizScreen.classList.remove('hidden');
+
+                shuffledQuestions = questions.sort(() => Math.random() - 0.5);
+                currentQuestionIndex = 0;
+                score = 0;
+                scoreEl.innerText = score;
+                totalQuestionsEl.innerText = questions.length;
+                
+                showQuestion();
+            }
+
+            function showQuestion() {
+                resetState();
+                const currentQuestion = shuffledQuestions[currentQuestionIndex];
+                questionNumberEl.innerText = currentQuestionIndex + 1;
+                questionTextEl.innerText = currentQuestion.question;
+
+                // Update progress bar
+                const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+                progressBar.style.width = `${progress}%`;
+
+                // Create answer buttons
+                currentQuestion.answers.forEach(answer => {
+                    const button = document.createElement('button');
+                    button.innerText = answer.text;
+                    button.classList.add('btn-answer', 'w-full', 'text-left', 'p-4', 'border-2', 'rounded-lg', 'transition-all', 'duration-200', 'hover:bg-gray-100', 'hover:border-blue-500');
+                    if (answer.correct) {
+                        button.dataset.correct = true;
+                    }
+                    button.addEventListener('click', selectAnswer);
+                    answerButtonsEl.appendChild(button);
+                });
+            }
+
+            function resetState() {
+                nextButton.disabled = true;
+                nextButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+                nextButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+                
+                while (answerButtonsEl.firstChild) {
+                    answerButtonsEl.removeChild(answerButtonsEl.firstChild);
+                }
+            }
+
+            function selectAnswer(e) {
+                const selectedButton = e.target;
+                const correct = selectedButton.dataset.correct === 'true';
+
+                // Update score
+                if (correct) {
+                    score++;
+                    scoreEl.innerText = score;
+                }
+
+                // Apply styles to all buttons
+                Array.from(answerButtonsEl.children).forEach(button => {
+                    button.disabled = true; // Disable all buttons
+                    if (button.dataset.correct) {
+                        button.classList.add('correct');
+                    } else {
+                        button.classList.add('incorrect');
+                    }
+                });
+                
+                // Highlight the selected button
+                selectedButton.classList.add('selected');
+
+                // Enable next button
+                nextButton.disabled = false;
+                nextButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                nextButton.classList.add('bg-green-500', 'hover:bg-green-600');
+            }
+
+            function nextQuestion() {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < shuffledQuestions.length) {
+                    showQuestion();
+                } else {
+                    showResults();
+                }
+            }
+
+            function showResults() {
+                quizScreen.classList.add('hidden');
+                resultsScreen.classList.remove('hidden');
+                
+                finalScoreEl.innerText = `${score} / ${questions.length}`;
+                const percentage = Math.round((score / questions.length) * 100);
+                scorePercentageEl.innerText = `¡Eso es un ${percentage}% de aciertos!`;
+            }
+            
+            function restartQuiz() {
+                resultsScreen.classList.add('hidden');
+                startScreen.classList.remove('hidden');
+            }
+
+        </script>
+    </body>
+    </html>
